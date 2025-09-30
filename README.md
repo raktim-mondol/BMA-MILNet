@@ -165,9 +165,9 @@ The model outputs:
 
 ## Requirements
 
-- Python 3.8+
-- PyTorch 1.9+
-- CUDA (optional, for GPU acceleration)
+- Python 3.10+
+- PyTorch 2.5+
+- CUDA 12.1 for GPU acceleration)
 - See `requirements.txt` for full list
 
 ## Citation
@@ -185,11 +185,11 @@ If you use this code in your research, please cite:
 
 ## License
 
-[Add your license here]
+MIT License
 
 ## Contact
 
-[Add contact information]
+r.mondol@unsw.edu.au
 
 ## Acknowledgments
 
