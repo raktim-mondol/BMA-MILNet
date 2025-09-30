@@ -1,0 +1,46 @@
+---
+title: BMA MIL Classifier - Training Pipeline
+---
+
+flowchart TB
+    subgraph "Training Pipeline"
+        A[Load Dataset<br/>BWM_label_data.csv]
+        B[Split Piles<br/>70% Train, 15% Val, 15% Test]
+        C[Initialize Model<br/>BMA_MIL_Classifier]
+        D[Setup Optimizer<br/>Adam, lr=1e-4]
+        E[Training Loop]
+        F[Validation]
+        G[Save Best Model]
+        H[Test Evaluation]
+    end
+
+    subgraph "Training Loop Details"
+        E1[For each epoch]
+        E2[For each batch of piles]
+        E3[Extract patches & features]
+        E4[Forward pass through model]
+        E5[Compute loss<br/>CrossEntropyLoss]
+        E6[Backward pass & update]
+    end
+
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> E1
+    E1 --> E2
+    E2 --> E3
+    E3 --> E4
+    E4 --> E5
+    E5 --> E6
+    E6 --> F
+    F --> G
+    G --> H
+
+    %% Styling
+    classDef pipeline fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
+    classDef loop fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef eval fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+
+    class A,B,C,D,E,F,G,H pipeline
+    class E1,E2,E3,E4,E5,E6 loop

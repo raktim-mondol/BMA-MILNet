@@ -4,6 +4,7 @@ Model evaluation utilities
 
 import torch
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
+from tqdm import tqdm
 
 
 def evaluate_model(model, test_loader):
@@ -16,7 +17,8 @@ def evaluate_model(model, test_loader):
     all_pile_names = []
 
     with torch.no_grad():
-        for patch_features_list, labels, pile_names in test_loader:
+        test_pbar = tqdm(test_loader, desc='Evaluating', unit='batch')
+        for patch_features_list, labels, pile_names in test_pbar:
             labels = labels.to(device)
             patch_features_device = [feat.to(device) for feat in patch_features_list]
 

@@ -29,7 +29,8 @@ class BMADataset(Dataset):
                 'image_paths': group['image_path'].tolist()[:max_images_per_pile],
                 'label': group['BMA_label'].iloc[0] - 1  # Convert to 0-indexed
             }
-
+        
+        # Store pile names for indexing
         self.pile_names = list(self.pile_groups.keys())
 
     def __len__(self):

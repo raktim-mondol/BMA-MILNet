@@ -8,6 +8,7 @@ import numpy as np
 import logging
 from sklearn.utils.class_weight import compute_class_weight
 from sklearn.metrics import accuracy_score, f1_score
+from tqdm import tqdm
 from .early_stopping import EarlyStopping
 
 
@@ -72,12 +73,19 @@ def train_model(model, train_loader, val_loader, num_epochs=50, learning_rate=1e
 
     fold_str = f" (Fold {fold})" if fold is not None else ""
     
-    for epoch in range(num_epochs):
+    # Overall epoch progress bar
+    epoch_pbar = tqdm(range(num_epochs), desc=f'Training Progress{fold_str}', unit='epoch')
+    
+    for epoch in epoch_pbar:
         # Training
         model.train()
         epoch_loss = 0.0
 
-        for batch_idx, (patch_features_list, labels, pile_names) in enumerate(train_loader):
+        # Training progress bar
+        train_pbar = tqdm(train_loader, desc=f'Epoch {epoch+1}/{num_epochs}{fold_str} - Training', 
+                         leave=False, unit='batch')
+        
+        for batch_idx, (patch_features_list, labels, pile_names) in enumerate(train_pbar):
             optimizer.zero_grad()
 
             labels = labels.to(device)
@@ -90,12 +98,9 @@ def train_model(model, train_loader, val_loader, num_epochs=50, learning_rate=1e
             optimizer.step()
 
             epoch_loss += loss.item()
-
-            if batch_idx % 10 == 0:
-                msg = f'Epoch {epoch+1}/{num_epochs}{fold_str}, Batch {batch_idx}, Loss: {loss.item():.4f}'
-                print(msg)
-                if logger.hasHandlers():
-                    logger.debug(msg)
+            
+            # Update progress bar with current loss
+            train_pbar.set_postfix({'Loss': f'{loss.item():.4f}', 'Avg Loss': f'{epoch_loss/(batch_idx+1):.4f}'})
 
         avg_train_loss = epoch_loss / len(train_loader)
         train_losses.append(avg_train_loss)
@@ -105,8 +110,12 @@ def train_model(model, train_loader, val_loader, num_epochs=50, learning_rate=1e
         val_preds = []
         val_labels = []
 
+        # Validation progress bar
+        val_pbar = tqdm(val_loader, desc=f'Epoch {epoch+1}/{num_epochs}{fold_str} - Validation', 
+                       leave=False, unit='batch')
+
         with torch.no_grad():
-            for patch_features_list, labels, pile_names in val_loader:
+            for patch_features_list, labels, pile_names in val_pbar:
                 labels = labels.to(device)
                 patch_features_device = [feat.to(device) for feat in patch_features_list]
 
@@ -121,8 +130,15 @@ def train_model(model, train_loader, val_loader, num_epochs=50, learning_rate=1e
         val_accuracies.append(val_acc)
         val_f1_scores.append(val_f1)
 
+        # Update overall epoch progress bar with metrics
+        epoch_pbar.set_postfix({
+            'Train Loss': f'{avg_train_loss:.4f}',
+            'Val Acc': f'{val_acc:.4f}',
+            'Val F1': f'{val_f1:.4f}',
+            'Best Acc': f'{best_val_acc:.4f}'
+        })
+
         msg = f'Epoch {epoch+1}/{num_epochs}{fold_str}, Train Loss: {avg_train_loss:.4f}, Val Acc: {val_acc:.4f}, Val F1: {val_f1:.4f}'
-        print(msg)
         if logger.hasHandlers():
             logger.info(msg)
 

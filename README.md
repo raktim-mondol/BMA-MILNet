@@ -1,6 +1,6 @@
 # BMA Multi-Level Multiple Instance Learning (MIL) Classifier
 
-A deep learning framework for BMA classification using hierarchical Multiple Instance Learning with Vision Transformer features.
+A deep learning framework for BMA (Bone Marrow Aspirate) classification using hierarchical Multiple Instance Learning with Vision Transformer features.
 
 ## Architecture
 
@@ -165,9 +165,9 @@ The model outputs:
 
 ## Requirements
 
-- Python 3.10+
-- PyTorch 2.5+
-- CUDA 12.1 for GPU acceleration)
+- Python 3.8+
+- PyTorch 1.9+
+- CUDA (optional, for GPU acceleration)
 - See `requirements.txt` for full list
 
 ## Citation
@@ -185,11 +185,11 @@ If you use this code in your research, please cite:
 
 ## License
 
-MIT License
+[Add your license here]
 
 ## Contact
 
-r.mondol@unsw.edu.au
+[Add contact information]
 
 ## Acknowledgments
 

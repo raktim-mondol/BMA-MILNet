@@ -1,0 +1,60 @@
+---
+title: BMA MIL Classifier - Model Architecture Details
+---
+
+classDiagram
+    class PatchExtractor {
+        -patch_size: int
+        -target_size: int
+        +extract_patches(image_path)
+        -divide_into_patches(image)
+        -resize_patches(patches)
+    }
+
+    class FeatureExtractor {
+        -model: ViT-R50
+        -transform: transforms
+        -device: str
+        +extract_features(patches)
+        -load_model()
+        -setup_transforms()
+    }
+
+    class ImageLevelAggregator {
+        -attention: Sequential
+        -image_encoder: Sequential
+        +forward(patch_features)
+        -compute_attention_weights(features)
+        -weighted_sum(features, weights)
+    }
+
+    class PileLevelAggregator {
+        -attention: Sequential
+        -classifier: Sequential
+        +forward(image_features)
+        -compute_attention_weights(features)
+        -weighted_sum(features, weights)
+    }
+
+    class BMA_MIL_Classifier {
+        -image_aggregator: ImageLevelAggregator
+        -pile_aggregator: PileLevelAggregator
+        +forward(patch_features_list)
+        -aggregate_patches_to_images(patch_features)
+        -aggregate_images_to_pile(image_features)
+    }
+
+    class BMADataset {
+        -data_df: DataFrame
+        -image_dir: str
+        -feature_extractor: FeatureExtractor
+        -pile_groups: dict
+        +__getitem__(idx)
+        -extract_pile_features(pile_name)
+    }
+
+    PatchExtractor --> FeatureExtractor : provides patches
+    FeatureExtractor --> BMADataset : extracts features
+    BMADataset --> BMA_MIL_Classifier : provides data
+    BMA_MIL_Classifier --> ImageLevelAggregator : uses for image aggregation
+    BMA_MIL_Classifier --> PileLevelAggregator : uses for pile aggregation

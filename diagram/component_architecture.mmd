@@ -1,0 +1,45 @@
+---
+title: BMA MIL Classifier - Detailed Component Architecture
+---
+
+flowchart TD
+    %% Main Components
+    subgraph "BMA MIL Classifier System"
+        PE[PatchExtractor<br/>4032×3024 → 12×224×224]
+        FE[FeatureExtractor<br/>ViT-R50 Pre-trained]
+        ILA[ImageLevelAggregator<br/>Attention over 12 patches]
+        PLA[PileLevelAggregator<br/>Attention over N images]
+        CLS[Classifier<br/>4-class BMA]
+    end
+
+    %% Data Flow
+    IMG[4032×3024 Image] --> PE
+    PE --> PATCHES[12×224×224 Patches]
+    PATCHES --> FE
+    FE --> FEATURES[12×768 Features]
+    FEATURES --> ILA
+    ILA --> IMG_FEAT[512-dim Image Feature]
+    IMG_FEAT --> PLA
+    PLA --> PILE_FEAT[256-dim Pile Feature]
+    PILE_FEAT --> CLS
+    CLS --> PRED[BMA Prediction 1-4]
+
+    %% Attention Mechanisms
+    subgraph "Attention Details"
+        PATCH_ATT[Patch Attention<br/>Linear→Tanh→Linear→Softmax]
+        IMG_ATT[Image Attention<br/>Linear→Tanh→Linear→Softmax]
+    end
+
+    ILA -.-> PATCH_ATT
+    PLA -.-> IMG_ATT
+
+    %% Styling
+    classDef component fill:#bbdefb,stroke:#1976d2,stroke-width:2px
+    classDef data fill:#c8e6c9,stroke:#388e3c,stroke-width:2px
+    classDef attention fill:#fff9c4,stroke:#f57f17,stroke-width:2px
+    classDef output fill:#f8bbd9,stroke:#c2185b,stroke-width:2px
+
+    class PE,FE,ILA,PLA,CLS component
+    class IMG,PATCHES,FEATURES,IMG_FEAT,PILE_FEAT data
+    class PATCH_ATT,IMG_ATT attention
+    class PRED output

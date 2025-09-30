@@ -1,0 +1,48 @@
+---
+title: BMA MIL Classifier - Overall Workflow
+---
+
+sequenceDiagram
+    participant User
+    participant Dataset
+    participant PatchExtractor
+    participant FeatureExtractor
+    participant ImageAggregator
+    participant PileAggregator
+    participant Classifier
+    participant Results
+
+    Note over User,Dataset: Initialization Phase
+    User->>Dataset: Load BWM_label_data.csv
+    Dataset-->>User: 123 piles, 4 BMA classes
+
+    Note over User,FeatureExtractor: Feature Extraction Phase
+    loop For each pile
+        loop For each image in pile
+            User->>PatchExtractor: Process 4032×3024 image
+            PatchExtractor->>PatchExtractor: Extract 12×1008×1008 patches
+            PatchExtractor->>PatchExtractor: Resize to 12×224×224
+            PatchExtractor->>FeatureExtractor: Send patches
+            FeatureExtractor->>FeatureExtractor: ViT-R50 forward pass
+            FeatureExtractor-->>ImageAggregator: 12×768 features
+        end
+    end
+
+    Note over ImageAggregator,PileAggregator: Aggregation Phase
+    loop For each pile
+        ImageAggregator->>ImageAggregator: Compute patch attention weights
+        ImageAggregator->>ImageAggregator: Weighted sum → 512-dim image features
+        ImageAggregator->>PileAggregator: Send image features
+        PileAggregator->>PileAggregator: Compute image attention weights
+        PileAggregator->>PileAggregator: Weighted sum → 256-dim pile feature
+        PileAggregator->>Classifier: Send pile feature
+    end
+
+    Note over Classifier,Results: Classification Phase
+    Classifier->>Classifier: Forward pass through MLP
+    Classifier-->>Results: 4-class probabilities
+    Results-->>User: Final BMA prediction
+
+    Note over User,Results: Evaluation
+    User->>Results: Calculate accuracy, F1 score
+    Results-->>User: Performance metrics

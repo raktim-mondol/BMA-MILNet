@@ -1,0 +1,35 @@
+---
+title: BMA MIL Classifier - Data Flow & Dimensions
+---
+
+graph LR
+    %% Input Dimensions
+    A[4032×3024×3 Image] --> B[12 Patches]
+    B --> C[1008×1008×3 per Patch]
+    C --> D[Resize to 224×224×3]
+    D --> E[ViT-R50 Input]
+
+    %% Feature Dimensions
+    E --> F[768-dim Features<br/>per Patch]
+    F --> G[12×768 Features<br/>per Image]
+    G --> H[Image Aggregation]
+    H --> I[512-dim Image Feature]
+
+    %% Pile Dimensions
+    I --> J[N×512 Features<br/>per Pile]
+    J --> K[Pile Aggregation]
+    K --> L[256-dim Pile Feature]
+    L --> M[4-class BMA Prediction]
+
+    %% Styling
+    classDef inputDims fill:#e3f2fd,stroke:#1565c0
+    classDef patchDims fill:#f3e5f5,stroke:#7b1fa2
+    classDef featureDims fill:#e8f5e8,stroke:#2e7d32
+    classDef aggregation fill:#fff3e0,stroke:#ef6c00
+    classDef outputDims fill:#fce4ec,stroke:#c2185b
+
+    class A,B,C,D inputDims
+    class E,F,G patchDims
+    class H,I featureDims
+    class J,K,L aggregation
+    class M outputDims

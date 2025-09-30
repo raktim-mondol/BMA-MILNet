@@ -8,8 +8,13 @@ import torch
 class Config:
     # Data parameters
     DATA_PATH = 'data/BWM_label_data.csv'
-    IMAGE_DIR = 'data/images'  # Update this to your image directory
-    NUM_CLASSES = 4
+    # IMAGE_DIR can be:
+    # - Relative path: 'data/images'
+    # - Absolute Windows path: r'C:\Users\YourName\Pictures\pile_images'
+    # - Absolute Windows path: 'C:/Users/YourName/Pictures/pile_images'
+    # All images referenced in the CSV should be in this single folder
+    IMAGE_DIR = r'D:\SCANDY\Data\BWM_Data'  # Update this to your image directory (supports Windows paths)
+    NUM_CLASSES = 3
 
     # Image processing
     ORIGINAL_SIZE = (4032, 3024)
@@ -25,7 +30,7 @@ class Config:
 
     # Training parameters
     BATCH_SIZE = 4
-    NUM_EPOCHS = 50
+    NUM_EPOCHS = 100
     LEARNING_RATE = 1e-4
     WEIGHT_DECAY = 1e-5
     DROPOUT_RATE = 0.3
@@ -72,7 +77,7 @@ class Config:
     
     # Geometric augmentation parameters
     ROTATION_RANGE = 15
-    ZOOM_RANGE = (0.9, 1.1)
+    ZOOM_RANGE = (0.9, 2.5)
     SHEAR_RANGE = 10
     HORIZONTAL_FLIP = True
     VERTICAL_FLIP = True

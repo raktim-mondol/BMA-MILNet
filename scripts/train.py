@@ -38,6 +38,10 @@ def main():
     df = pd.read_csv(Config.DATA_PATH)
     df = df[df['BMA_label'] != 'BMA_label']
     df['BMA_label'] = df['BMA_label'].astype(int)
+    
+    # Filter out class 4 (only has 1 pile, insufficient for stratified split)
+    df = df[df['BMA_label'] != 4]
+    print(f"Filtered data to exclude class 4. Remaining classes: {sorted(df['BMA_label'].unique())}")
 
     print(f"\n{'='*60}")
     print(f"BMA MIL Classifier - Training Pipeline")
@@ -56,18 +60,39 @@ def main():
     unique_piles = pile_labels['pile'].values
     pile_bma_labels = pile_labels['BMA_label'].values
     
-    train_piles, temp_piles, train_labels, temp_labels = train_test_split(
-        unique_piles, pile_bma_labels, 
-        test_size=Config.TEST_SIZE, 
-        random_state=Config.RANDOM_STATE, 
-        stratify=pile_bma_labels
-    )
-    val_piles, test_piles, val_labels, test_labels = train_test_split(
-        temp_piles, temp_labels, 
-        test_size=0.5, 
-        random_state=Config.RANDOM_STATE, 
-        stratify=temp_labels
-    )
+    # Check if we have enough samples for stratification
+    class_counts = pile_labels['BMA_label'].value_counts().sort_index()
+    print(f"Class distribution: {class_counts.to_dict()}")
+    
+    # For class 1 with only 5 piles, we need to use a smaller test size
+    # Use 60% train, 20% val, 20% test to ensure each split has at least 1 pile per class
+    min_class_count = class_counts.min()
+    if min_class_count < 5:
+        print(f"Warning: Class with minimum samples ({min_class_count}) detected. Using non-stratified split.")
+        # Use simple random split when stratification is not possible
+        train_piles, temp_piles = train_test_split(
+            unique_piles, test_size=0.4, random_state=Config.RANDOM_STATE
+        )
+        val_piles, test_piles = train_test_split(
+            temp_piles, test_size=0.5, random_state=Config.RANDOM_STATE
+        )
+        train_labels = pile_labels[pile_labels['pile'].isin(train_piles)]['BMA_label'].values
+        val_labels = pile_labels[pile_labels['pile'].isin(val_piles)]['BMA_label'].values
+        test_labels = pile_labels[pile_labels['pile'].isin(test_piles)]['BMA_label'].values
+    else:
+        # Use stratified split when possible
+        train_piles, temp_piles, train_labels, temp_labels = train_test_split(
+            unique_piles, pile_bma_labels, 
+            test_size=0.4, 
+            random_state=Config.RANDOM_STATE, 
+            stratify=pile_bma_labels
+        )
+        val_piles, test_piles, val_labels, test_labels = train_test_split(
+            temp_piles, temp_labels, 
+            test_size=0.5, 
+            random_state=Config.RANDOM_STATE, 
+            stratify=temp_labels
+        )
 
     train_df = df[df['pile'].isin(train_piles)]
     val_df = df[df['pile'].isin(val_piles)]
@@ -89,8 +114,8 @@ def main():
     print("\nInitializing data augmentation pipelines...")
     train_augmentation = get_augmentation_pipeline(is_training=True, config=Config)
     val_augmentation = get_augmentation_pipeline(is_training=False, config=Config)
-    print("✓ Training augmentation: Histogram normalization + Geometric")
-    print("✓ Validation/Test augmentation: Histogram normalization only")
+    print("* Training augmentation: Histogram normalization + Geometric")
+    print("* Validation/Test augmentation: Histogram normalization only")
 
     # Create datasets with augmentation
     train_dataset = BMADataset(train_df, Config.IMAGE_DIR, feature_extractor, 
@@ -100,13 +125,30 @@ def main():
     test_dataset = BMADataset(test_df, Config.IMAGE_DIR, feature_extractor, 
                              augmentation=val_augmentation, is_training=False)
 
+    # Define custom collate function for MIL data
+    def collate_fn(batch):
+        """Custom collate function to handle variable-sized patch features"""
+        patch_features_list = []
+        labels = []
+        pile_names = []
+        
+        for patch_features, label, pile_name in batch:
+            patch_features_list.append(patch_features)
+            labels.append(label)
+            pile_names.append(pile_name)
+        
+        # Convert labels to tensor
+        labels = torch.tensor(labels, dtype=torch.long)
+        
+        return patch_features_list, labels, pile_names
+
     # Create data loaders
     train_loader = DataLoader(train_dataset, batch_size=Config.BATCH_SIZE, 
-                             shuffle=True, collate_fn=lambda x: x)
+                             shuffle=True, collate_fn=collate_fn)
     val_loader = DataLoader(val_dataset, batch_size=Config.BATCH_SIZE, 
-                           shuffle=False, collate_fn=lambda x: x)
+                           shuffle=False, collate_fn=collate_fn)
     test_loader = DataLoader(test_dataset, batch_size=Config.BATCH_SIZE, 
-                            shuffle=False, collate_fn=lambda x: x)
+                            shuffle=False, collate_fn=collate_fn)
 
     # Initialize model
     model = BMA_MIL_Classifier(
@@ -156,7 +198,7 @@ def main():
     print(f"\nConfusion Matrix:")
     print(f"{'='*60}")
     print("Predicted →")
-    print(f"True ↓    BMA1  BMA2  BMA3  BMA4")
+    print(f"True ↓    BMA1  BMA2  BMA3")
     for i in range(Config.NUM_CLASSES):
         row_str = f"BMA {i+1}:  "
         for j in range(Config.NUM_CLASSES):

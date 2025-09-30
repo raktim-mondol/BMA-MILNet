@@ -1,0 +1,9 @@
+2025-09-30 21:14:23,732 - INFO - Logging initialized. Log file: logs\bma_mil_standard_20250930_211423.log
+2025-09-30 21:14:23,733 - INFO - Mode: standard
+2025-09-30 21:14:23,733 - INFO - Device: cuda
+2025-09-30 21:14:23,751 - INFO - Configuration: Epochs=100, Batch Size=4, LR=0.0001
+2025-09-30 21:14:23,751 - INFO - Augmentation: Geometric=True, Color=False, Noise=False
+2025-09-30 21:14:24,929 - INFO - Loading pretrained weights from Hugging Face hub (timm/vit_base_r50_s16_224.orig_in21k)
+2025-09-30 21:14:25,179 - INFO - [timm/vit_base_r50_s16_224.orig_in21k] Safe alternative available for 'pytorch_model.bin' (as 'model.safetensors'). Loading weights using safetensors.
+2025-09-30 21:14:25,646 - INFO - Using weighted CrossEntropyLoss for class imbalance
+2025-09-30 21:14:25,646 - INFO - Early stopping enabled: patience=10, min_delta=0.001

@@ -1,0 +1,42 @@
+graph TB
+    Start[Load BMA Data] --> Check{USE_CROSS_VALIDATION?}
+    
+    Check -->|True| CV[3-Fold Cross-Validation Mode]
+    Check -->|False| Split[Train/Val/Test Split Mode]
+    
+    CV --> Stratify[Stratified K-Fold Split<br/>Maintains class balance]
+    
+    Stratify --> Fold1[Fold 1<br/>Train: 67% piles<br/>Val: 33% piles]
+    Stratify --> Fold2[Fold 2<br/>Train: 67% piles<br/>Val: 33% piles]
+    Stratify --> Fold3[Fold 3<br/>Train: 67% piles<br/>Val: 33% piles]
+    
+    Fold1 --> Train1[Train Model 1<br/>50 epochs]
+    Fold2 --> Train2[Train Model 2<br/>50 epochs]
+    Fold3 --> Train3[Train Model 3<br/>50 epochs]
+    
+    Train1 --> Eval1[Evaluate on Val Set 1<br/>Accuracy + F1 per class]
+    Train2 --> Eval2[Evaluate on Val Set 2<br/>Accuracy + F1 per class]
+    Train3 --> Eval3[Evaluate on Val Set 3<br/>Accuracy + F1 per class]
+    
+    Eval1 --> Aggregate[Aggregate Results]
+    Eval2 --> Aggregate
+    Eval3 --> Aggregate
+    
+    Aggregate --> Metrics[Compute Summary Metrics<br/>Mean Accuracy ± Std<br/>Mean F1 per class ± Std]
+    
+    Metrics --> Plot[Generate Visualization<br/>6-panel plot]
+    
+    Plot --> CVEnd[Cross-Validation Complete]
+    
+    Split --> TrainVal[70% Train<br/>15% Val<br/>15% Test]
+    TrainVal --> TrainSingle[Train Single Model]
+    TrainSingle --> EvalTest[Evaluate on Test Set<br/>Accuracy + F1 per class]
+    EvalTest --> PlotSingle[Plot Training History]
+    PlotSingle --> StandardEnd[Training Complete]
+    
+    style CV fill:#e1f5ff
+    style Split fill:#fff4e1
+    style Metrics fill:#e8f5e9
+    style Plot fill:#f3e5f5
+    style CVEnd fill:#c8e6c9
+    style StandardEnd fill:#fff9c4
