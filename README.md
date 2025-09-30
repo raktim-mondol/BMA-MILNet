@@ -1,6 +1,6 @@
 # BMA Multi-Level Multiple Instance Learning (MIL) Classifier
 
-A deep learning framework for BMA (Bone Marrow Aspirate) classification using hierarchical Multiple Instance Learning with Vision Transformer features.
+A deep learning framework for BMA classification using hierarchical Multiple Instance Learning with Vision Transformer features.
 
 ## Architecture
 
