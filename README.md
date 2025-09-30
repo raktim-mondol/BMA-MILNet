@@ -185,11 +185,11 @@ If you use this code in your research, please cite:
 
 ## License
 
-[Add your license here]
+MIT
 
 ## Contact
 
-[Add contact information]
+r.mondol@unsw.edu.au
 
 ## Acknowledgments
 
